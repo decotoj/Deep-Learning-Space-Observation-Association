@@ -1,0 +1,8 @@
+train_data.csv
+train_tags.csv
+val_data.csv
+val_tags.csv
+test_data.csv
+test_tags.csv
+*.pt
+__pycache__/
