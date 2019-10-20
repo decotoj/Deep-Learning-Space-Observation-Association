@@ -10,9 +10,9 @@ N = 100000 #Number of simulated data points in each set (Baseline = 100000)
 nLow = 3 #Low end of range for # of obs of a given RSO
 nHigh = 10 #High end of range for # of obs of a given RSO
 dataTags = ['train', 'val', 'test']
-tf = 3600*12 #Time range of observation is between t=0 and t=tf (seconds)
+tf = 3600*12 #Time range of observation is between 0 to tf (seconds)
 StreakLength = 120 #Length of time for each observation from start of collect to end (seconds)
-Pstd = 0.1 #Standard Deviation of Gaussian Error on RSO Position (km) - Causes Observation Angles to Be Off Truth
+Pstd = 0.1 #Standard Deviation of Gaussian Error on RSO Position (km) - Introduces Error on Observation Angles
 
 #Constants
 mu = 398600.4418 #Earth Gravitional Constant km^2/s^2
@@ -41,11 +41,11 @@ def RandomObservationsN(NumVec, s):
     #Create Random Observations
     t = []
     ob = []
-    for i in range(0,NumVec): 
+    for i in range(NumVec): 
          
          t = random.uniform(0,tf) #Random time between 0 and tf
-         p, v = s.posvelatt(t)
-         p2, v2 = s.posvelatt(t+StreakLength)
+         p, _ = s.posvelatt(t)
+         p2, _ = s.posvelatt(t+StreakLength)
 
          P = randomEarthObserver(p) #Randomly Positioned Earth Observer
 
@@ -57,11 +57,12 @@ def RandomObservationsN(NumVec, s):
          m = np.linalg.norm(u) 
          u = [q/m for q in u] #Observation Unit Vector
 
-         u2 = [p2[0], p2[1], p2[2]]
+         u2 = [p2[0] - P[0], p2[1] - P[1], p2[2] - P[2]] #WARNING: Ignores observer movement over streak time interval
          m = np.linalg.norm(u2)
          u2 = [q/m for q in u2]
 
          StreakDirection = [u2[0]-u[0], u2[1]-u[1],u2[2]-u[2]]
+         StreakDirection = [q/StreakLength for q in StreakDirection]
 
          ob.append([float(t)] + P + u + StreakDirection) #10 params
         

@@ -28,7 +28,7 @@ from collections import defaultdict
 random.seed(100)
 
 #Network and Data Parameters
-LOAD_SAVED_MODEL_FLAG = 0 #1=Load prior saved model, 0=Train model from scratch
+LOAD_SAVED_MODEL_FLAG = 1 #1=Load prior saved model, 0=Train model from scratch
 TRAIN_FLAG = 1 #1=TRAIN, 0=EVAL ONLY
 MODEL_FILE_IN = 'model_save.pt' #Path to saved model file if applicable
 MODEL_FILE_OUT = 'model_save_update.pt' #Path to saved new model to
