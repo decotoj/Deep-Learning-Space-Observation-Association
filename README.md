@@ -27,6 +27,14 @@ Contains the true RSO id numbers for the observed RSOs in the observations in th
 'main_nn_assoc_8.py' performs training of a multi-layered fully connected neural network to identify triplets of observation as either all of the same RSO or of one or more RSOs.  The resulting network can be used to identify triplets of observation most likely to be of the same RSO from a large pool of uncorrelated observations.  Such identifcation can then lead to more accurate orbit fits to the unknown object than would have been possible with single track data alone.  The resulting orbit can then be used for sensor re-tasking and ultimately regular observation and custody of the unknown object.
 
 # Data Visualization
-![GitHub Logo](/docs/data_example_2D.png)
+
+Two dimensional display of observations of four different RSOs over a multi-hour period.  Observation association is the task of associating which observations are of the same RSO (w/ no apriori tagging or other information).
+
+![GitHub Logo](/resources/data_example_2D.png)
+Format: ![Alt Text](url)
+
+Three dimensional display of several observations.  Observer positions are on surface of earth.  Each observation is a unit vector originating at the location of the observer and in the direction of the observed object.
+
+![GitHub Logo](/resources/data_example_3D.png)
 Format: ![Alt Text](url)
 
