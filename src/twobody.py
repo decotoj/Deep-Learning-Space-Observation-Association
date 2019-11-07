@@ -17,6 +17,8 @@ import numpy as np
 import math
 from scipy.optimize import newton
 from scipy.optimize import bisect
+import matplotlib.pyplot as plt
+import random
 
 class TwoBodyOrbit:
     """A class of a two-body orbit of a celestial object
@@ -678,3 +680,39 @@ def lambert(ipos, tpos, targett, mu=1.32712440041e20, ccw=True):
     tvel = (val_gd * stpos - sipos) / val_g
     
     return ivel, tvel
+
+if __name__ == "__main__":
+
+    mu = 398600.4418 #Earth Gravitional Constant km^2/s^2
+
+    #Example of Use of 2 Body Propagator and Visualize
+    s = TwoBodyOrbit("RSO", mu=mu)   # create an instance
+    a = random.uniform(41164,43164) #semi-major axis
+    e = random.uniform(0,0.1)  #eccentricity
+    i = random.uniform(0,20) #inclination
+    LoAN = random.uniform(0,360) #longitude of ascending node
+    AoP = random.uniform(0,360) #argument of perigee
+    MA = random.uniform(0,360) #mean anomaly
+    s.setOrbKepl(0, a, e, i, LoAN, AoP, MA=MA) # define the orbit
+
+    x = []
+    y = []
+    z = []
+    T = [q for q in range(0,86400,60)]
+    for t in T:
+        p,v = s.posvelatt(t)
+        x.append(p[0])
+        y.append(p[1])
+        z.append(p[2])
+
+    fig, ax = plt.subplots()
+    ax.plot(x, y)
+    ax.set(xlabel='Px (km)', ylabel='Py (km)',title='Example Satellite')
+    ax.grid()
+
+    fig, ax = plt.subplots()
+    ax.plot(T, z)
+    ax.set(xlabel='Epoch (seconds)', ylabel='Pz (km)',title='Example Satellite')
+    ax.grid()
+
+    plt.show()
