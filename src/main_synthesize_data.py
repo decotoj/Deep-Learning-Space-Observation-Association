@@ -6,10 +6,10 @@ import math
 #Produce a set of N Optical Observations of RSOs by Randomely Placed Earth Based Observers
 
 #Settings
-N = 100000 #Number of simulated data points in each set (Baseline = 100000)
+N = 1000#100000 #Number of simulated data points in each set (Baseline = 100000)
 nLow = 3 #Low end of range for # of obs of a given RSO
 nHigh = 10 #High end of range for # of obs of a given RSO
-dataTags = ['train', 'val', 'test']
+dataTags = ['test'] #['train', 'val', 'test']
 tf = 3600*12 #Time range of observation is between 0 to tf (seconds)
 StreakLength = 120 #Length of time for each observation from start of collect to end (seconds)
 Pstd = 0.1 #Standard Deviation of Gaussian Error on RSO Position (km) - Introduces Error on Observation Angles
