@@ -6,10 +6,10 @@ import math
 #Produce a set of N Optical Observations of RSOs by Randomely Placed Earth Based Observers
 
 #Settings
-N = 1000#100000 #Number of simulated data points in each set (Baseline = 100000)
+N = 1000000#100000 #Number of simulated data points in each set (Baseline = 100000)
 nLow = 3 #Low end of range for # of obs of a given RSO
 nHigh = 10 #High end of range for # of obs of a given RSO
-dataTags = ['test'] #['train', 'val', 'test']
+dataTags = ['test', 'train', 'val'] #['train', 'val', 'test']
 tf = 3600*12 #Time range of observation is between 0 to tf (seconds)
 StreakLength = 120 #Length of time for each observation from start of collect to end (seconds)
 Pstd = 0.1 #Standard Deviation of Gaussian Error on RSO Position (km) - Introduces Error on Observation Angles
@@ -41,8 +41,8 @@ def RandomObservationsN(NumVec, s):
     #Create Random Observations
     t = []
     ob = []
-    for i in range(NumVec): 
-         
+    for i in range(NumVec):
+
          t = random.uniform(0,tf) #Random time between 0 and tf
          p, _ = s.posvelatt(t)
          p2, _ = s.posvelatt(t+StreakLength)
@@ -54,7 +54,7 @@ def RandomObservationsN(NumVec, s):
          p2 = [q+random.gauss(0,Pstd) for q in p2]
 
          u = [p[0] - P[0], p[1] - P[1], p[2] - P[2]] #RSO Position at Random Index Relative to Observer
-         m = np.linalg.norm(u) 
+         m = np.linalg.norm(u)
          u = [q/m for q in u] #Observation Unit Vector
 
          u2 = [p2[0] - P[0], p2[1] - P[1], p2[2] - P[2]] #WARNING: Ignores observer movement over streak time interval
@@ -65,7 +65,7 @@ def RandomObservationsN(NumVec, s):
          StreakDirection = [q/StreakLength for q in StreakDirection]
 
          ob.append([float(t)] + P + u + StreakDirection) #10 params
-        
+
     return ob
 
 def randomSatellite():
@@ -78,7 +78,7 @@ def randomSatellite():
     LoAN = random.uniform(0,360) #longitude of ascending node
     AoP = random.uniform(0,360) #argument of perigee
     MA = random.uniform(0,360) #mean anomaly
-    
+
     s.setOrbKepl(0, a, e, i, LoAN, AoP, MA=MA) # define the orbit
 
     return s

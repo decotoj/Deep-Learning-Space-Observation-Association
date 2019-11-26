@@ -1,3 +1,7 @@
 *.csv
 *.pt
+*.pyc
+*.pyo
+.vscode/
 __pycache__/
+venv/

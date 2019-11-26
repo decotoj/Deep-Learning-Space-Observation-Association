@@ -11,7 +11,7 @@
 # The following loads prebuilt training and test data consisting of optical observerations
 # of satellites.  A neural network is then trained to identify pairs of optical observations
 # in the labelled training data as being of the same satellite or not.  This network is then
-# used to identify triplets of observations in the test data that are most likely to be of 
+# used to identify triplets of observations in the test data that are most likely to be of
 # the same satellite.  No apriori knowledge of physics or orbital mechanics is used.
 
 import torch
@@ -24,7 +24,7 @@ random.seed(654654)
 
 #Network and Data Parameters
 LOAD_SAVED_MODEL_FLAG = 1 #1=Load prior saved model, 0=Train model from scratch
-TRAIN_FLAG = 2 #1=TRAIN, 0=EVAL ONLY, 2=TRAIN BUT DONT SAVE
+TRAIN_FLAG = 1 #1=TRAIN, 0=EVAL ONLY, 2=TRAIN BUT DONT SAVE
 MODEL_FILE = 'model.pt' #Path to saved model file if applicable, also is name of new model file to be saved
 D_in = 416 #Length of Input Vectors after Augmentation (time, observer x-y-z unit vec, observervation x-y-z unit vec, streak direction x-y-z unit vec, observer vector mag)
 H = 208 #416 #Hidden layer(s) dimension
@@ -63,9 +63,9 @@ def augmentAndVectorize(ob):
     #Vectorize
     datapoint = []
     for q in range(len(ob)):
-        datapoint = datapoint + ob[q] 
+        datapoint = datapoint + ob[q]
 
-    return datapoint 
+    return datapoint
 
 #Build Labelled Dataset of Observation Doubles
 def buildLabelledDataset(Nc, obs, tags):
@@ -75,7 +75,7 @@ def buildLabelledDataset(Nc, obs, tags):
 
         #Find Matching Double
         while True:
-            n = random.randint(0, len(tags)-1) 
+            n = random.randint(0, len(tags)-1)
             indices = [i for i, x in enumerate(tags) if x == tags[n]]
             if len(indices) > 1:
                 d = [obs[indices[0]][:], obs[indices[1]][:]]
@@ -85,15 +85,15 @@ def buildLabelledDataset(Nc, obs, tags):
 
         #Find Non-Matching Double
         while True:
-            n2 = random.randint(0, len(tags)-1) 
+            n2 = random.randint(0, len(tags)-1)
             if tags[n] != tags[n2]:
-                d = [obs[n][:], obs[n2][:]] 
+                d = [obs[n][:], obs[n2][:]]
                 x.append(augmentAndVectorize(d))
                 y.append(1)
                 break
 
     return x, y
-    
+
 #Pull Training Data and Tags from input files
 def loadDataTags(file1, file2):
 
@@ -113,7 +113,7 @@ def loadDataTags(file1, file2):
     if file2 != 'NA':
         with open(file2, 'r') as f:
             tags = [int(q) for q in f.readlines()]
-        
+
     return obs, tags
 
 def accuracy(out, labels):
@@ -161,7 +161,7 @@ if __name__ == "__main__":
     if TRAIN_FLAG >= 1:
 
         #Build Validation Dataset
-        obs_val, tags_val = loadDataTags(val_data, val_tags) #Load Validation Data 
+        obs_val, tags_val = loadDataTags(val_data, val_tags) #Load Validation Data
         x_val, y_val = buildLabelledDataset(Nval, obs_val, tags_val)
         print('Validation Data & # RSOs Used', Nval, len(x_val), len(y_val))
 
@@ -235,4 +235,3 @@ if __name__ == "__main__":
                 for param in model.parameters():
                     param.data -= learning_rate * param.grad
 
-        
