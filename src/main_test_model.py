@@ -12,7 +12,6 @@ import random
 import main_train_model as trnMod
 import numpy as np
 import matplotlib
-import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.offsetbox import AnchoredText
 import numpy as np

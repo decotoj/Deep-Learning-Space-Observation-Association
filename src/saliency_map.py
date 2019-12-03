@@ -17,6 +17,7 @@ from scipy import ndimage
 import main_train_model as trnMod
 from numpy import asarray
 from matplotlib import cm
+import random
 
 # Config
 MODEL_PATH = 'model.pt' #save path for model file
@@ -109,7 +110,7 @@ def show_saliency_maps(X, y):
     saliency = saliency.numpy()
     N = X.shape[0]
    
-    d = 3
+    d = 4
 
     # Step Through Results
     composite = []
@@ -121,7 +122,10 @@ def show_saliency_maps(X, y):
             # Image
             x = transformTo2121(X[i])
             img = Image.fromarray((x).astype(np.uint8))
-            plt.title('Image')    
+            #if i == 0 or i == 1:
+            plt.title('Image')  
+            # else:
+            #     plt.title('Image (Matching)')    
             plt.imshow(img)
             plt.axis('off')
             plt.subplot(2, d, d + i + 1)
@@ -136,25 +140,16 @@ def show_saliency_maps(X, y):
 
         composite.append(x) #Add Current Saliency Map to Composite
 
-    #plt.show() #Show Grid of Individual Saliency Maps
-
     # Process Composite
     x = composite[0]
     for q in range(1,len(composite)):
         x = np.add(x,composite[q])
-    print('test1234', len(composite))
-
-    # for i in range(10):
-    #     x[0][i] = 255*3
-
+    print('Composite Length', len(composite))
     i = len(composite)
     x = np.divide(x, i)
-
     saliency_img = Image.fromarray((x).astype(np.uint8))
 
-    #print('x min max', min(x.all()), max(x.all()))
-
-    # Plot
+    # Plot Composite
     fig, ax = plt.subplots()
     ax.set(title='Composite Saliency Map')
     plt.imshow(saliency_img, cmap=plt.cm.hot)
@@ -165,22 +160,23 @@ def show_saliency_maps(X, y):
 pairs = []
 labels = []
 
-# Grab Given Number of Examples of Either Match or Non Match
-import random
-while len(pairs) < 100:
+# Grab Given Number of Examples of Non Match
+while len(pairs) < 3:
     i = int(random.uniform(0,len(obs)))
     j = int(random.uniform(0,len(obs)))
     if i != j:
-            # if tags[i] == tags[j]:
-            #     pairs.append((i,j))
-            #     labels.append([0])
-            if tags[i] != tags[j]:
-                pairs.append((i,j))
-                labels.append([1])
-    if len(pairs) == 100:
-        break
+        if tags[i] != tags[j]:
+            pairs.append((i,j))
+            labels.append([1])
 
-
+# Grab Given Number of Examples of Match
+while len(pairs) < 5:
+    i = int(random.uniform(0,len(obs)))
+    j = int(random.uniform(0,len(obs)))
+    if i != j:
+        if tags[i] == tags[j]:
+            pairs.append((i,j))
+            labels.append([0])
 
 inputs = []
 for i,j in pairs:
