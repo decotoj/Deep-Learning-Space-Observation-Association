@@ -1,0 +1,8 @@
+black
+matplotlib
+numpy
+pandas
+pylint
+scipy
+seaborn
+torch

@@ -1,62 +1,94 @@
-# Build a Composite Saliency Map 
+# Build a Composite Saliency Map
 # 11/17/2019
 # Jake Decoto
 
+import os
+import random
+
+import matplotlib.pyplot as plt
+import numpy as np
 import torch
+import torch.nn as nn
+from matplotlib import cm
+from numpy import asarray
+from scipy import ndimage
+from scipy.ndimage.filters import gaussian_filter1d
+
+import main_train_model as trnMod
 import torchvision
 import torchvision.transforms as T
-import random
-import numpy as np
-from scipy.ndimage.filters import gaussian_filter1d
-import matplotlib.pyplot as plt
 from PIL import Image
-from torchvision import datasets, models, transforms
-import os
-import torch.nn as nn
-from scipy import ndimage
-import main_train_model as trnMod
-from numpy import asarray
-from matplotlib import cm
-import random
+from torchvision import datasets, models
+from torchvision import transforms as T
 
 # Config
-MODEL_PATH = 'model.pt' #save path for model file
-test_data = 'test_data.csv'
-test_tags = 'test_tags.csv'
+MODEL_PATH = "model.pt"  # save path for model file
+test_data = "test_data.csv"
+test_tags = "test_tags.csv"
 
 # Plot Configure
-plt.rcParams['figure.figsize'] = (10.0, 8.0) # set default size of plots
-plt.rcParams['image.interpolation'] = 'nearest'
-plt.rcParams['image.cmap'] = 'gray'
+plt.rcParams["figure.figsize"] = (10.0, 8.0)  # set default size of plots
+plt.rcParams["image.interpolation"] = "nearest"
+plt.rcParams["image.cmap"] = "gray"
 
 # Define Neural Network Layers (matching pretrained model)
 model = trnMod.defineModel()
-device = torch.device('cpu') #Assign to CPU
+device = torch.device("cpu")  # Assign to CPU
 
 # Load Pre-Trained Neural Network Model
 model.load_state_dict(torch.load(MODEL_PATH))
-model.eval() # Switch Model to Eval Mode
-model = model.to(device) # Assign model to device (CPU if local)
+model.eval()  # Switch Model to Eval Mode
+model = model.to(device)  # Assign model to device (CPU if local)
 
 # Parse Test Data
 obs, tags = trnMod.loadDataTags(test_data, test_tags)
-print('# Test Set Obs: ', len(obs))
-print('# Unique RSOs: ', len(set(tags)))
+print("# Test Set Obs: ", len(obs))
+print("# Unique RSOs: ", len(set(tags)))
+
 
 def transformTo2121(x):
-    b = np.array([0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0])
+    b = np.array(
+        [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+        ]
+    )
     x = np.append(x, b)
     t = list(x)
     mn = min(t)
     mx = max(t)
-    t = [int((q-mn)/(mx-mn)*255) for q in t]
+    t = [int((q - mn) / (mx - mn) * 255) for q in t]
     x = []
     for q in range(21):
-        i1 = 0 + q*21
-        i2 = 21 + q*21
+        i1 = 0 + q * 21
+        i2 = 21 + q * 21
         x.append(t[i1:i2])
     x = np.array(x)
     return asarray(x)
+
 
 def compute_saliency_maps(X, y, model):
     """
@@ -73,11 +105,11 @@ def compute_saliency_maps(X, y, model):
     """
     # Make sure the model is in "test" mode
     model.eval()
-    
+
     # Make input tensor require gradient
     X.requires_grad_()
-    
-    saliency = []#None
+
+    saliency = []  # None
 
     ##############################################################################
     # Perform a forward and backward pass through #
@@ -87,20 +119,23 @@ def compute_saliency_maps(X, y, model):
     # the gradients with a backward pass.                                        #
     ##############################################################################
 
-    out = model(X)  #forward pass    
-    score = out.gather(1, y.view(-1, 1)).squeeze() #score for truth class
-    score.backward(torch.ones(score.shape)) #backward pass
-    grad = X.grad #get gradients
-    grad = grad.abs() #absolute value of gradients
-    #saliency,_ = torch.max(grad, dim=1) #max across input channels
-    saliency = grad #do not max over input channels since only 1 channel
+    out = model(X)  # forward pass
+    score = out.gather(1, y.view(-1, 1)).squeeze()  # score for truth class
+    score.backward(torch.ones(score.shape))  # backward pass
+    grad = X.grad  # get gradients
+    grad = grad.abs()  # absolute value of gradients
+    # saliency,_ = torch.max(grad, dim=1) #max across input channels
+    saliency = grad  # do not max over input channels since only 1 channel
 
     return saliency
+
 
 def show_saliency_maps(X, y):
 
     # Convert X and y from numpy arrays to Torch Tensors
-    X_tensor = torch.FloatTensor(X, device=device) #X[0] #torch.from_numpy(X[0]).float().to(device)
+    X_tensor = torch.FloatTensor(
+        X, device=device
+    )  # X[0] #torch.from_numpy(X[0]).float().to(device)
     y_tensor = torch.LongTensor(y)
 
     # Compute saliency maps for images in X
@@ -109,7 +144,7 @@ def show_saliency_maps(X, y):
     # Convert the saliency map from Torch Tensor to numpy array and show images and saliency maps together.
     saliency = saliency.numpy()
     N = X.shape[0]
-   
+
     d = 4
 
     # Step Through Results
@@ -117,73 +152,74 @@ def show_saliency_maps(X, y):
     for i in range(len(saliency)):
 
         if i < d:
-            print('i', i)
+            print("i", i)
             plt.subplot(2, d, i + 1)
             # Image
             x = transformTo2121(X[i])
             img = Image.fromarray((x).astype(np.uint8))
-            #if i == 0 or i == 1:
-            plt.title('Image')  
+            # if i == 0 or i == 1:
+            plt.title("Image")
             # else:
-            #     plt.title('Image (Matching)')    
+            #     plt.title('Image (Matching)')
             plt.imshow(img)
-            plt.axis('off')
+            plt.axis("off")
             plt.subplot(2, d, d + i + 1)
 
             # Saliency Map
             x = transformTo2121(saliency[i])
             saliency_img = Image.fromarray((x).astype(np.uint8))
-            plt.title('Saliency Map')
+            plt.title("Saliency Map")
             plt.imshow(saliency_img, cmap=plt.cm.hot)
-            plt.axis('off')
+            plt.axis("off")
             plt.gcf().set_size_inches(12, 8)
 
-        composite.append(x) #Add Current Saliency Map to Composite
+        composite.append(x)  # Add Current Saliency Map to Composite
 
     # Process Composite
     x = composite[0]
-    for q in range(1,len(composite)):
-        x = np.add(x,composite[q])
-    print('Composite Length', len(composite))
+    for q in range(1, len(composite)):
+        x = np.add(x, composite[q])
+    print("Composite Length", len(composite))
     i = len(composite)
     x = np.divide(x, i)
     saliency_img = Image.fromarray((x).astype(np.uint8))
 
     # Plot Composite
     fig, ax = plt.subplots()
-    ax.set(title='Composite Saliency Map')
+    ax.set(title="Composite Saliency Map")
     plt.imshow(saliency_img, cmap=plt.cm.hot)
-    plt.axis('off')
+    plt.axis("off")
     plt.gcf().set_size_inches(12, 8)
     plt.show()
+
 
 pairs = []
 labels = []
 
 # Grab Given Number of Examples of Non Match
 while len(pairs) < 3:
-    i = int(random.uniform(0,len(obs)))
-    j = int(random.uniform(0,len(obs)))
+    i = int(random.uniform(0, len(obs)))
+    j = int(random.uniform(0, len(obs)))
     if i != j:
         if tags[i] != tags[j]:
-            pairs.append((i,j))
+            pairs.append((i, j))
             labels.append([1])
 
 # Grab Given Number of Examples of Match
 while len(pairs) < 5:
-    i = int(random.uniform(0,len(obs)))
-    j = int(random.uniform(0,len(obs)))
+    i = int(random.uniform(0, len(obs)))
+    j = int(random.uniform(0, len(obs)))
     if i != j:
         if tags[i] == tags[j]:
-            pairs.append((i,j))
+            pairs.append((i, j))
             labels.append([0])
 
 inputs = []
-for i,j in pairs:
-    datapoint = trnMod.augmentAndVectorize([obs[i][:], obs[j][:]]) 
+for i, j in pairs:
+    datapoint = trnMod.augmentAndVectorize([obs[i][:], obs[j][:]])
     inputs.append(datapoint)
 inputs = np.array(inputs)
 labels = np.array(labels)
 
-print('inputs', inputs.shape)
+print("inputs", inputs.shape)
 show_saliency_maps(inputs, labels)

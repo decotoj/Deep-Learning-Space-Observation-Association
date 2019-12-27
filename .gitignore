@@ -1,3 +1,6 @@
 *.csv
 *.pt
+*.pyc
+*.pyo
 __pycache__/
+venv/
