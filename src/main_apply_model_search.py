@@ -23,7 +23,7 @@ import main_train_model as trnMod
 test_data = "test_data.csv"
 test_tags = "test_tags.csv"
 MODEL_FILE = "model.pt"
-costMax = 0.5  # 0.3 #Heuristic maximum cost above which results assumed to not be useful
+costMax = 0.5  # 0.3 # Heuristic maximum cost above which results assumed to not be useful
 numObs = 3  # Desired number of observations in each predicted match (e.g. min useful for IOD)
 numSol = 200  # Desired number of top solutions returned from UCS algorithm - NOTE: # Unique solutions will be half of this number rounded up
 

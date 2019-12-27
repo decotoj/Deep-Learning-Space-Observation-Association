@@ -18,6 +18,9 @@ Pstd = 0.1  # Standard Deviation of Gaussian Error on RSO Position (km) - Introd
 
 # Constants
 mu = 398600.4418  # Earth Gravitional Constant km^2/s^2
+EARTH_RADIUS = 6378.137
+EARTH_FLAT = 1.0 / 298.257
+EARTH_ECC_SQ = EARTH_FLAT * (2 - EARTH_FLAT)
 
 
 def angleBetweenVectors(v1, v2):
@@ -26,22 +29,64 @@ def angleBetweenVectors(v1, v2):
     )
 
 
+def intertial_grid(v):
+    sma = EARTH_RADIUS
+    esq = EARTH_ECC_SQ
+    x, y, z = v
+    lon = math.atan2(y, x)
+    r = math.sqrt(x * x + y * y)
+    phi = math.atan(z / r)
+    lat = phi
+    c = 0.0
+    for _ in range(6):
+        slat = math.sin(lat)
+        c = 1.0 / math.sqrt(1 - esq * slat * slat)
+        lat = math.atan((z + sma * c * esq * slat) / r)
+    return lat, lon
+
+
+def hypot(v):
+    return math.sqrt(sum([x * x for x in v]))
+
+
+def half_angle(v):
+    return math.acos(EARTH_RADIUS / hypot(v))
+
+def clamp(n, min_val, max_val):
+    return max(min_val, min(n, max_val))
+
+def haversine(phi_1, lam_1, phi_2, lam_2):
+    a = math.sin((phi_2 - phi_1) / 2) ** 2
+    b = math.cos(phi_1) * math.cos(phi_2) * math.sin((lam_2 - lam_1) / 2) ** 2
+    return 2.0 * math.asin(math.sqrt(clamp(a + b, -1.0, 1.0)))
+
 def randomEarthObserver(p):
 
     while True:
+        # Build an Observer Positioned Randomly on Earth
+        # R = random.uniform(6378-0.5, 6378+5)
+        # P = [random.random()-0.5 for q in range(3)]
+        # m = np.linalg.norm(P)
+        # P = [q/m*R for q in P]
+        # return P
 
-        # Build an Observer Positioned Randomely on Earth (+/- 500 meters from Sea Level)
-        R = random.uniform(6378 - 0.5, 6378 + 5)
-        P = [random.random() - 0.5 for q in range(3)]
+        R = random.uniform(6378 - 0.5, 6378 + 0.5)
+        P = [random.gauss(0, 1) for _ in range(3)]
         m = np.linalg.norm(P)
-        P = [q / m * R for q in P]
+        P = [(q / m) * R for q in P]
+        # return P
 
         # Ensure Randomly Placed Observer Isn't Looking Through Earth to Observe RSO
-        C = [p[i] - P[i] for i in range(3)]  # Vector from Observer to RSO
-        alpha = angleBetweenVectors(
-            C, P
-        )  # Angle Off Horizon of Observation Vector (Must be <1.57 radians)
-        if alpha < 1.57:
+        # C = [p[i] - P[i] for i in range(3)]  # Vector from Observer to RSO
+        # alpha = angleBetweenVectors(C, P)
+        # # Angle Off Horizon of Observation Vector (Must be <1.57 radians)
+        # if alpha < 1.57:
+        #     return P
+
+        ha = half_angle(p)
+        ig_p = intertial_grid(p)
+        ig_P = intertial_grid(P)
+        if haversine(*ig_p, *ig_P) < ha:
             return P
 
 
@@ -50,7 +95,7 @@ def RandomObservationsN(NumVec, s):
     # Create Random Observations
     t = []
     ob = []
-    for i in range(NumVec):
+    for _ in range(NumVec):
 
         t = random.uniform(0, tf)  # Random time between 0 and tf
         p, _ = s.posvelatt(t)
