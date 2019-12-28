@@ -1,5 +1,6 @@
 import math
 import random
+from datetime import datetime, timedelta
 
 import numpy as np
 
@@ -11,16 +12,24 @@ import twobody as twobody
 N = 1000  # 100000 #Number of simulated data points in each set (Baseline = 100000)
 nLow = 3  # Low end of range for # of obs of a given RSO
 nHigh = 10  # High end of range for # of obs of a given RSO
-dataTags = ["test"]  # ['train', 'val', 'test']
+dataTags = ["train", "val", "test"]  # ['train', 'val', 'test']
 tf = 3600 * 12  # Time range of observation is between 0 to tf (seconds)
 StreakLength = 120  # Length of time for each observation from start of collect to end (seconds)
 Pstd = 0.1  # Standard Deviation of Gaussian Error on RSO Position (km) - Introduces Error on Observation Angles
+n_observers = 250
+start_epoch = datetime(
+    2019, 12, 27, 0, 0, 0
+)  # model ground station position starting on this date/time
 
 # Constants
 mu = 398600.4418  # Earth Gravitional Constant km^2/s^2
-EARTH_RADIUS = 6378.137
-EARTH_FLAT = 1.0 / 298.257
-EARTH_ECC_SQ = EARTH_FLAT * (2 - EARTH_FLAT)
+EARTH_RADIUS = 6378.137  # kilometers
+EARTH_FLAT = 1.0 / 298.257  # unitless
+EARTH_ECC_SQ = EARTH_FLAT * (2 - EARTH_FLAT)  # unitless
+EARTH_ROTATION = 7.292115855300805e-5  # radians per second
+EARTH_ORIENTATION = 1.7510838783001768  # radians
+EARTH_ORIENTATION_EPOCH = datetime(2015, 1, 1)
+OBSERVERS = []  # ecef km positions
 
 
 def angleBetweenVectors(v1, v2):
@@ -52,37 +61,47 @@ def hypot(v):
 def half_angle(v):
     return math.acos(EARTH_RADIUS / hypot(v))
 
+
+def rot_z(v, theta):
+    x, y, z = v
+    cosT = math.cos(theta)
+    sinT = math.sin(theta)
+    return [
+        cosT * x + sinT * y + 0 * z,
+        -sinT * x + cosT * y + 0 * z,
+        0 * x + 0 * y + 1 * z,
+    ]
+
+
 def clamp(n, min_val, max_val):
     return max(min_val, min(n, max_val))
+
 
 def haversine(phi_1, lam_1, phi_2, lam_2):
     a = math.sin((phi_2 - phi_1) / 2) ** 2
     b = math.cos(phi_1) * math.cos(phi_2) * math.sin((lam_2 - lam_1) / 2) ** 2
     return 2.0 * math.asin(math.sqrt(clamp(a + b, -1.0, 1.0)))
 
-def randomEarthObserver(p):
 
-    while True:
-        # Build an Observer Positioned Randomly on Earth
-        # R = random.uniform(6378-0.5, 6378+5)
-        # P = [random.random()-0.5 for q in range(3)]
-        # m = np.linalg.norm(P)
-        # P = [q/m*R for q in P]
-        # return P
-
+def generate_observers(n):
+    global OBSERVERS
+    OBSERVERS = []
+    for _ in range(n):
         R = random.uniform(6378 - 0.5, 6378 + 0.5)
         P = [random.gauss(0, 1) for _ in range(3)]
         m = np.linalg.norm(P)
-        P = [(q / m) * R for q in P]
-        # return P
+        OBSERVERS.append([(q / m) * R for q in P])
 
-        # Ensure Randomly Placed Observer Isn't Looking Through Earth to Observe RSO
-        # C = [p[i] - P[i] for i in range(3)]  # Vector from Observer to RSO
-        # alpha = angleBetweenVectors(C, P)
-        # # Angle Off Horizon of Observation Vector (Must be <1.57 radians)
-        # if alpha < 1.57:
-        #     return P
 
+def randomEarthObserver(p, t):
+    obserers_shuffled = OBSERVERS[:]
+    random.shuffle(obserers_shuffled)
+    for ecef in obserers_shuffled:
+        t_delta = (
+            (start_epoch + timedelta(seconds=t)) - EARTH_ORIENTATION_EPOCH
+        ).total_seconds()
+        theta = EARTH_ORIENTATION + (t_delta * EARTH_ROTATION)
+        P = rot_z(ecef, -theta)
         ha = half_angle(p)
         ig_p = intertial_grid(p)
         ig_P = intertial_grid(P)
@@ -101,7 +120,7 @@ def RandomObservationsN(NumVec, s):
         p, _ = s.posvelatt(t)
         p2, _ = s.posvelatt(t + StreakLength)
 
-        P = randomEarthObserver(p)  # Randomly Positioned Earth Observer
+        P = randomEarthObserver(p, t)  # Randomly Selected Earth Observer
 
         # Add Random Error to RSO Position Knowledge
         p = [q + random.gauss(0, Pstd) for q in p]
@@ -179,7 +198,7 @@ def synthesizeDataset(N, nLow, nHigh, outFile1, outFile2):
 
 
 if __name__ == "__main__":
-
+    generate_observers(n_observers)
     # Synthesize Train, Validation and Test Data
     [
         synthesizeDataset(N, nLow, nHigh, q + "_data.csv", q + "_tags.csv")
