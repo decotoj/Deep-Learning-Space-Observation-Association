@@ -20,20 +20,23 @@ from collections import defaultdict
 import numpy as np
 import torch
 import torch.optim as optim
+import os
 
-random.seed(654654)
+# random.seed(654654)
 
 # Network and Data Parameters
-LOAD_SAVED_MODEL_FLAG = (
-    1  # 1=Load prior saved model, 0=Train model from scratch
-)
-TRAIN_FLAG = 2  # 1=TRAIN, 0=EVAL ONLY, 2=TRAIN BUT DONT SAVE
 MODEL_FILE = "model.pt"  # Path to saved model file if applicable, also is name of new model file to be saved
+# LOAD_SAVED_MODEL_FLAG = (
+#     0  # 1=Load prior saved model, 0=Train model from scratch
+# )
+LOAD_SAVED_MODEL_FLAG = 1 if os.path.isfile(MODEL_FILE) else 0
+print("LOAD_SAVED_MODEL={:d}".format(LOAD_SAVED_MODEL_FLAG))
+TRAIN_FLAG = 1  # 1=TRAIN, 0=EVAL ONLY, 2=TRAIN BUT DONT SAVE
 D_in = 416  # Length of Input Vectors after Augmentation (time, observer x-y-z unit vec, observervation x-y-z unit vec, streak direction x-y-z unit vec, observer vector mag)
-H = 208  # 416 #Hidden layer(s) dimension
+H = 216  # 416 #Hidden layer(s) dimension
 N = 1000  # Number of training examples to create from loaded data (Baseline = 40000)
 Nval = 1000  ##Number of validation examples to create from loaded data (Baseline = 2500)
-NUMEPOCHS = 1000  # Number of Training Epochs
+NUMEPOCHS = 100  # Number of Training Epochs
 learning_rate = 1e-6  # Baseline = 1e-4
 train_data = "train_data.csv"
 train_tags = "train_tags.csv"

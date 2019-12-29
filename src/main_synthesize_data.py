@@ -9,7 +9,7 @@ import twobody as twobody
 # Produce a set of N Optical Observations of RSOs by Randomely Placed Earth Based Observers
 
 # Settings
-N = 1000  # 100000 #Number of simulated data points in each set (Baseline = 100000)
+N = 100000  # 100000 #Number of simulated data points in each set (Baseline = 100000)
 nLow = 3  # Low end of range for # of obs of a given RSO
 nHigh = 10  # High end of range for # of obs of a given RSO
 dataTags = ["train", "val", "test"]  # ['train', 'val', 'test']
