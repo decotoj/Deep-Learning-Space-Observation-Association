@@ -187,7 +187,7 @@ if __name__ == "__main__":
         x, y = buildLabelledDataset(N, obs, tags)
         print("Training Data & # RSOs Used", N, len(x), len(y))
 
-        print("/n Total RSOs", len(set(tags)))
+        print("\n Total RSOs", len(set(tags)))
 
         # Assign Training and Val Data
         x = torch.FloatTensor(x, device=device)
