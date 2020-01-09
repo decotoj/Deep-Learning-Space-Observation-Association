@@ -22,7 +22,7 @@ observation unit vector rate of change y (1/seconds)
 observation unit vector rate of change z (1/seconds)
 
 # Tags CSV File: 
-Contains the true RSO id numbers for the observed RSOs in the observations in the Data CSV File
+Contains the true RSO id numbers for observed RSOs in the observations in the Data CSV File
 
 'main_nn_assoc_8.py' performs training of a multi-layered fully connected neural network to identify triplets of observation as either all of the same RSO or of one or more RSOs.  The resulting network can be used to identify triplets of observation most likely to be of the same RSO from a large pool of uncorrelated observations.  Such identifcation can then lead to more accurate orbit fits to the unknown object than would have been possible with single track data alone.  The resulting orbit can then be used for sensor re-tasking and ultimately regular observation and custody of the unknown object.
 
