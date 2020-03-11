@@ -1,5 +1,7 @@
 # Deep-Learning-Space-Observation-Association
 
+https://arxiv.org/abs/2001.05855
+
 Space Observation Association is the problem of determining which, if any, angles only observations from a group of untagged observations are of the same resident space object (RSO).  Angles only observations refers to optical tracks derived from ground or space based telescropes observing the space environment.  A typical observation consists of the following pieces of information: an epoch, observer position, unit vector to the observed object, and rate of change of the observation unit vector. 
 
 This projects explores methods of solving this problem that do not rely on 'expert system' approaches.  Rather than rely on expert humans to code rulesets this projects attempts to learn from the data itself.
